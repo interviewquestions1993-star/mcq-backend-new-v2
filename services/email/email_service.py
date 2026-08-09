@@ -87,10 +87,16 @@ def _send_via_resend(subject: str, html: str) -> bool:
         },
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        result = json.loads(resp.read())
-        logging.info(f"Resend API response: {result}")
-    return True
+    
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+            logging.info(f"Resend API response: {result}")
+        return True
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode('utf-8')
+        logging.error(f"Resend API HTTP Error {e.code}: {error_body}")
+        raise ValueError(f"Resend API Error: {error_body}")
 
 
 def _send_via_smtp(subject: str, html: str) -> bool:
